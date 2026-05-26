@@ -1,0 +1,5 @@
+{
+  "name": "Chemical Business Tracker",
+  "description": "A comprehensive tracking application for a chemical business, managing purchases, sales, customers, and chemicals with a simple name-based access system.",
+  "requestFramePermissions": []
+}

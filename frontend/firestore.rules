@@ -1,0 +1,87 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    // Collection: chemicals
+    // Fields: name (string), unit (string: liter, kg, cane)
+    //
+    // Collection: customers
+    // Fields: name (string), contact (string), balance (number)
+    //
+    // Collection: purchases
+    // Fields: date (string), chemicalId (string), amount (number), rate (number), unit (string), expenses (map), totalCost (number)
+    //
+    // Collection: sales
+    // Fields: date (string), customerId (string), chemicalId (string), quantity (number), unit (string), rate (number), total (number), paid (bool)
+    //
+    // Collection: transactions
+    // Fields: customerId (string), type (string: credit, debit), amount (number), date (string), balanceAfter (number)
+    // ===============================================================
+
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isValidChemical(data) {
+      return data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+             data.unit in ['liter', 'kg', 'cane'];
+    }
+
+    function isValidCustomer(data) {
+      return data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+             data.balance is number;
+    }
+
+    function isValidPurchase(data) {
+      return data.date is string && data.items is list &&
+             data.totalCost is number;
+    }
+
+    function isValidSale(data) {
+      return data.date is string && data.customerId is string &&
+             data.items is list && data.total is number && data.paid is bool;
+    }
+
+    function isValidTransaction(data) {
+      return data.customerId is string && data.type in ['credit', 'debit'] &&
+             data.amount is number && data.amount > 0 &&
+             data.date is string && data.balanceAfter is number;
+    }
+
+    // Rules
+    match /chemicals/{chemicalId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated() && isValidChemical(request.resource.data);
+      allow delete: if isAuthenticated();
+    }
+
+    match /customers/{customerId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated() && isValidCustomer(request.resource.data);
+      allow delete: if isAuthenticated();
+    }
+
+    match /purchases/{purchaseId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidPurchase(request.resource.data);
+      allow update: if isAuthenticated() && isValidPurchase(request.resource.data);
+      allow delete: if isAuthenticated();
+    }
+
+    match /sales/{saleId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidSale(request.resource.data);
+      allow update: if isAuthenticated() && isValidSale(request.resource.data);
+      allow delete: if isAuthenticated();
+    }
+
+    match /transactions/{transactionId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidTransaction(request.resource.data);
+      allow delete: if isAuthenticated();
+    }
+  }
+}

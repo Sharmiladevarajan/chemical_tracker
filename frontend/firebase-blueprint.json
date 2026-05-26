@@ -1,0 +1,104 @@
+{
+  "entities": {
+    "Chemical": {
+      "title": "Chemical",
+      "description": "A chemical product used in the business.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "The name of the chemical." },
+        "unit": { "type": "string", "enum": ["liter", "kg", "cane"], "description": "The default unit of measurement." },
+        "defaultCanSize": { "type": "number", "description": "The default size of a can in kg/liters if unit is cane." }
+      },
+      "required": ["name", "unit"]
+    },
+    "Customer": {
+      "title": "Customer",
+      "description": "A customer who buys chemicals.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "The name of the customer." },
+        "contact": { "type": "string", "description": "The contact information of the customer." },
+        "balance": { "type": "number", "description": "The current balance of the customer (positive for debit, negative for credit)." }
+      },
+      "required": ["name", "balance"]
+    },
+    "Purchase": {
+      "title": "Purchase",
+      "description": "A purchase of chemicals for the business.",
+      "type": "object",
+      "properties": {
+        "date": { "type": "string", "format": "date-time", "description": "The date and time of the purchase." },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "chemicalId": { "type": "string" },
+              "amount": { "type": "number" },
+              "rate": { "type": "number" },
+              "unit": { "type": "string" },
+              "canSize": { "type": "number" },
+              "subtotal": { "type": "number" }
+            }
+          }
+        },
+        "expenses": {
+          "type": "object",
+          "properties": {
+            "food": { "type": "number" },
+            "auto": { "type": "number" },
+            "labour": { "type": "number" }
+          }
+        },
+        "totalCost": { "type": "number", "description": "Total cost including expenses." }
+      },
+      "required": ["date", "items", "totalCost"]
+    },
+    "Sale": {
+      "title": "Sale",
+      "description": "A sale of chemicals to a customer.",
+      "type": "object",
+      "properties": {
+        "date": { "type": "string", "format": "date-time", "description": "The date and time of the sale." },
+        "customerId": { "type": "string", "description": "The ID of the customer." },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "chemicalId": { "type": "string" },
+              "quantity": { "type": "number" },
+              "rate": { "type": "number" },
+              "unit": { "type": "string" },
+              "canSize": { "type": "number" },
+              "subtotal": { "type": "number" }
+            }
+          }
+        },
+        "total": { "type": "number", "description": "The total sale amount." },
+        "paid": { "type": "boolean", "description": "Whether the sale has been paid for." }
+      },
+      "required": ["date", "customerId", "items", "total", "paid"]
+    },
+    "Transaction": {
+      "title": "Transaction",
+      "description": "A credit or debit transaction for a customer.",
+      "type": "object",
+      "properties": {
+        "customerId": { "type": "string", "description": "The ID of the customer." },
+        "type": { "type": "string", "enum": ["credit", "debit"], "description": "The type of transaction." },
+        "amount": { "type": "number", "description": "The transaction amount." },
+        "date": { "type": "string", "format": "date-time", "description": "The date and time of the transaction." },
+        "balanceAfter": { "type": "number", "description": "The customer's balance after this transaction." }
+      },
+      "required": ["customerId", "type", "amount", "date", "balanceAfter"]
+    }
+  },
+  "firestore": {
+    "/chemicals": { "schema": "Chemical", "description": "Collection of chemicals." },
+    "/customers": { "schema": "Customer", "description": "Collection of customers." },
+    "/purchases": { "schema": "Purchase", "description": "Collection of purchases." },
+    "/sales": { "schema": "Sale", "description": "Collection of sales." },
+    "/transactions": { "schema": "Transaction", "description": "Collection of customer transactions." }
+  }
+}

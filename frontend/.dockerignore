@@ -1,0 +1,13 @@
+node_modules
+dist
+build
+.vite
+.vite-temp
+coverage
+.env
+.env.*
+!.env.example
+.git
+.gitignore
+*.md
+npm-debug.log*

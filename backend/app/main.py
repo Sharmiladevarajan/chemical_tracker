@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.router import api_router
+from app.config import settings
 
 app = FastAPI(
     title="Chemical Business Tracker API",
@@ -9,20 +10,17 @@ app = FastAPI(
     description="REST API backed by PostgreSQL (repositories + services).",
 )
 
-# Origins must match the browser exactly (no trailing slash). Include 127.0.0.1 and
-# localhost so Vite + API URL combinations work. credentials=False avoids wildcard issues.
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-    ],
-    allow_credentials=False,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# Origins must match the browser exactly (no trailing slash). Override via CORS_ORIGINS on Render.
+_cors_kw: dict = {
+    "allow_origins": settings.cors_origins_list,
+    "allow_credentials": False,
+    "allow_methods": ["*"],
+    "allow_headers": ["*"],
+}
+if settings.cors_origin_regex:
+    _cors_kw["allow_origin_regex"] = settings.cors_origin_regex
+
+app.add_middleware(CORSMiddleware, **_cors_kw)
 
 app.include_router(api_router, prefix="/api")
 

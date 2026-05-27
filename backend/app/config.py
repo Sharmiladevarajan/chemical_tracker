@@ -28,6 +28,12 @@ class Settings(BaseSettings):
         description="Regex for extra allowed origins; set empty to disable",
     )
 
+    # Required on Render when DATABASE_URL uses db.<ref>.supabase.co (e.g. ap-south-1)
+    supabase_pooler_region: str | None = Field(
+        default=None,
+        description="Supabase pooler region; rewrites direct host to aws-0-<region>.pooler.supabase.com",
+    )
+
     @field_validator("cors_origins", mode="before")
     @classmethod
     def _strip_cors(cls, value: str) -> str:

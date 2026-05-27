@@ -17,6 +17,9 @@ def normalize_database_url(database_url: str, pooler_region: str | None) -> str:
     if url.startswith("postgresql://"):
         url = "postgresql+psycopg2://" + url[len("postgresql://") :]
 
+    if "pooler.supabase.com" in url:
+        return url
+
     match = re.search(r"@db\.([a-z0-9]+)\.supabase\.co", url)
     if not match or not pooler_region:
         return url
@@ -61,9 +64,11 @@ def build_connect_args(database_url: str) -> dict[str, str]:
     port = parsed.port or 5432
     args: dict[str, str] = {}
 
-    hostaddr = _resolve_hostaddr(host, port)
-    if hostaddr:
-        args["hostaddr"] = hostaddr
+    # Pooler hostnames resolve to IPv4; pinning hostaddr can break if DNS returns another region.
+    if "pooler.supabase.com" not in host:
+        hostaddr = _resolve_hostaddr(host, port)
+        if hostaddr:
+            args["hostaddr"] = hostaddr
 
     if "supabase.co" in host:
         args["sslmode"] = "require"

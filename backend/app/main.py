@@ -4,8 +4,11 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from urllib.parse import urlparse
+
 from app.api.router import api_router
 from app.config import settings
+from app.database.connection import normalize_database_url
 
 logger = logging.getLogger(__name__)
 
@@ -42,16 +45,31 @@ app.include_router(api_router, prefix="/api")
 
 
 @app.on_event("startup")
-def _warn_supabase_pooler() -> None:
-    url = settings.database_url
+def _log_database_target() -> None:
+    resolved = normalize_database_url(
+        settings.database_url,
+        settings.supabase_pooler_region,
+    )
+    host = urlparse(resolved.replace("+psycopg2", "")).hostname
+    logger.info("Database host: %s", host)
+
+    if settings.supabase_pooler_region and host and "pooler.supabase.com" in host:
+        if settings.supabase_pooler_region not in host:
+            logger.warning(
+                "SUPABASE_POOLER_REGION=%s does not match pooler host %s",
+                settings.supabase_pooler_region,
+                host,
+            )
+
     if (
         settings.supabase_pooler_region is None
-        and "@db." in url
-        and "supabase.co" in url
+        and host
+        and host.startswith("db.")
+        and host.endswith(".supabase.co")
     ):
         logger.warning(
-            "DATABASE_URL uses direct Supabase host (IPv6). "
-            "On Render, set SUPABASE_POOLER_REGION (e.g. ap-south-1) or use the Session pooler URI."
+            "Direct Supabase host (IPv6). On Render set SUPABASE_POOLER_REGION=ap-southeast-1 "
+            "or paste the Session pooler URI from the Supabase dashboard."
         )
 
 

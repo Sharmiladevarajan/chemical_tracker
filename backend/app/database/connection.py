@@ -32,7 +32,8 @@ def normalize_database_url(
     ref = match.group(1)
     host = (pooler_host or "").strip()
     if not host and pooler_region:
-        host = f"aws-0-{pooler_region.strip()}.pooler.supabase.com"
+        # Newer Supabase projects use aws-1, not aws-0 (aws-0 → "tenant not found").
+        host = f"aws-1-{pooler_region.strip()}.pooler.supabase.com"
     if not host:
         return url
 

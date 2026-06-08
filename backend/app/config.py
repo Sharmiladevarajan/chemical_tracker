@@ -35,7 +35,7 @@ class Settings(BaseSettings):
     )
     supabase_pooler_region: str | None = Field(
         default=None,
-        description="Fallback: rewrites direct host to aws-0-<region>.pooler.supabase.com (may be wrong; use pooler host instead)",
+        description="Fallback: rewrites direct host to aws-1-<region>.pooler.supabase.com (prefer pooler URI from dashboard)",
     )
 
     @field_validator("cors_origins", mode="before")

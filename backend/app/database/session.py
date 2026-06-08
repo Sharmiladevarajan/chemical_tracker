@@ -16,6 +16,7 @@ def get_engine():
         url = normalize_database_url(
             settings.database_url,
             settings.supabase_pooler_region,
+            settings.supabase_pooler_host,
         )
 
         _engine = create_engine(

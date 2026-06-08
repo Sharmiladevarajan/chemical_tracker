@@ -28,10 +28,14 @@ class Settings(BaseSettings):
         description="Regex for extra allowed origins; set empty to disable",
     )
 
-    # Required on Render when DATABASE_URL uses db.<ref>.supabase.co (e.g. ap-south-1)
+    # Prefer copying the Session pooler URI from Supabase dashboard instead of these.
+    supabase_pooler_host: str | None = Field(
+        default=None,
+        description="Exact pooler host from Supabase Connect (e.g. aws-1-ap-southeast-1.pooler.supabase.com)",
+    )
     supabase_pooler_region: str | None = Field(
         default=None,
-        description="Supabase pooler region; rewrites direct host to aws-0-<region>.pooler.supabase.com",
+        description="Fallback: rewrites direct host to aws-0-<region>.pooler.supabase.com (may be wrong; use pooler host instead)",
     )
 
     @field_validator("cors_origins", mode="before")

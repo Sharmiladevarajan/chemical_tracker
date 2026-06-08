@@ -49,6 +49,7 @@ def _log_database_target() -> None:
     resolved = normalize_database_url(
         settings.database_url,
         settings.supabase_pooler_region,
+        settings.supabase_pooler_host,
     )
     host = urlparse(resolved.replace("+psycopg2", "")).hostname
     logger.info("Database host: %s", host)

@@ -8,10 +8,15 @@ import sys
 from urllib.parse import urlparse
 
 
-def normalize_database_url(database_url: str, pooler_region: str | None) -> str:
+def normalize_database_url(
+    database_url: str,
+    pooler_region: str | None,
+    pooler_host: str | None = None,
+) -> str:
     """
-    Rewrite db.<ref>.supabase.co (IPv6-only direct host) to the Session pooler (IPv4)
-    when SUPABASE_POOLER_REGION is set — required for Render and most cloud hosts.
+    Rewrite db.<ref>.supabase.co (IPv6-only) to the Session pooler when pooler_host
+    or pooler_region is set. Prefer pooler_host copied from the Supabase dashboard
+    (aws-0 vs aws-1 differs per project).
     """
     url = database_url.strip()
     if url.startswith("postgresql://"):
@@ -21,11 +26,17 @@ def normalize_database_url(database_url: str, pooler_region: str | None) -> str:
         return url
 
     match = re.search(r"@db\.([a-z0-9]+)\.supabase\.co", url)
-    if not match or not pooler_region:
+    if not match:
         return url
 
     ref = match.group(1)
-    url = url.replace(f"@db.{ref}.supabase.co", f"@aws-0-{pooler_region}.pooler.supabase.com")
+    host = (pooler_host or "").strip()
+    if not host and pooler_region:
+        host = f"aws-0-{pooler_region.strip()}.pooler.supabase.com"
+    if not host:
+        return url
+
+    url = url.replace(f"@db.{ref}.supabase.co", f"@{host}")
     # Pooler user must be postgres.<project_ref>, not postgres
     url = re.sub(
         r"(postgresql\+psycopg2://)postgres:",
